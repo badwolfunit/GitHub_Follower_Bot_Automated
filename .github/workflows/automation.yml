@@ -15,7 +15,7 @@
 #     runs-on: ubuntu-latest
 
 #     env:
-#       GITHUB_USER: officialcodevoyage
+#       GITHUB_USER: badwolfunit
 #       PERSONAL_GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
 
 #     steps:
@@ -64,8 +64,8 @@
 #       - name: Commit and Push Changes
 #         if: github.ref == 'refs/heads/main'  # Ensures it runs only on the main branch
 #         run: |
-#           git config user.name "OfficialCodeVoyage"
-#           git config user.email "bondarenkopavloua@yahoo.com"
+#           git config user.name "${{ github.actor }}"
+#           git config user.email "${{ github.actor }}@users.noreply.github.com"
 #           git add -A
 #           timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 #           git commit -m "Automated Commit: ${timestamp} (UTC)" || echo "No changes to commit."
