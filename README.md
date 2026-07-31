@@ -6,7 +6,7 @@ Welcome to the **GitHub Follower Bot Automated** repository! This project is des
 
 :raised_hand::raised_hand::raised_hand:**You Follow Me** ---> **My Bot Follows you Back! Let's growth Together!**:raised_hand::raised_hand::metal:
 
-:large_blue_circle::large_blue_circle::large_blue_circle:Let's also connect on **[LinkedIn](https://www.linkedin.com/in/mrbondarenko/)**
+:large_blue_circle::large_blue_circle::large_blue_circle:Let's also connect on **LinkedIn**
 
 :star::star::star::star::star: ---> Star the Repo!
 
@@ -55,7 +55,7 @@ GitHub_Follower_Bot_Automated/
 ### 1. Clone the Repository
 Clone this repository to your local machine:
 ```bash
-git clone https://github.com/OfficialCodeVoyage/GitHub_Follower_Bot_Automated.git
+git clone https://github.com/badwolfunit/GitHub_Follower_Bot_Automated.git
 cd GitHub_Follower_Bot_Automated
 ```
 
@@ -189,7 +189,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## 📞 Support
 
 For any questions or issues, please feel free to reach out via GitHub Issues or Discussions.
-
 
 
 
