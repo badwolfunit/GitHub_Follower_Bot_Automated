@@ -1,72 +1,41 @@
-# name: GitHub Follower Bot
+name: GitHub Follower Bot
 
-# on:
-#   schedule:
-#     - cron: '0 */12 * * *'  # Runs every 12 hours
-#   workflow_dispatch:
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
 
-# permissions:
-#   contents: write  # Needed for committing and pushing changes
-#   actions: read
-#   packages: write
+permissions:
+  contents: write
 
-# jobs:
-#   follow-bot:
-#     runs-on: ubuntu-latest
+jobs:
+  follow-bot:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_USER: ${{ github.repository_owner }}
+      PERSONAL_GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
 
-#     env:
-#       GITHUB_USER: badwolfunit
-#       PERSONAL_GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v3
-#         with:
-#           fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-#       - name: Set up Python
-#         uses: actions/setup-python@v4
-#         with:
-#           python-version: '3.8'  # Consider updating to a newer version if possible
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-#       - name: Upgrade pip
-#         run: python -m pip install --upgrade pip
+      - name: Run follower bot
+        run: python bot.py
 
-#       - name: Install Pipenv
-#         run: pip install pipenv
-
-#       - name: Cache Pipenv dependencies
-#         uses: actions/cache@v3
-#         with:
-#           path: |
-#             ~/.local/share/pipenv
-#             ~/.cache/pip
-#             ~/.venv
-#           key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
-#           restore-keys: |
-#             ${{ runner.os }}-pipenv-
-
-#       - name: Install dependencies
-#         run: pipenv install --deploy --ignore-pipfile
-
-#       - name: Verify Pipenv Installation
-#         run: pipenv --version
-
-#       - name: List Installed Packages
-#         run: pipenv run pip list
-
-#       - name: Run Follower Bot
-#         env:
-#           GITHUB_USER: ${{ env.GITHUB_USER }}
-#           PERSONAL_GITHUB_TOKEN: ${{ env.PERSONAL_GITHUB_TOKEN }}
-#         run: pipenv run python bot.py
-
-#       - name: Commit and Push Changes
-#         if: github.ref == 'refs/heads/main'  # Ensures it runs only on the main branch
-#         run: |
-#           git config user.name "${{ github.actor }}"
-#           git config user.email "${{ github.actor }}@users.noreply.github.com"
-#           git add -A
-#           timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-#           git commit -m "Automated Commit: ${timestamp} (UTC)" || echo "No changes to commit."
-#           git push origin main
+      - name: Commit state updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add followers.txt follower_counter.txt last_checked_follower.txt bot.log || true
+          git diff --staged --quiet || git commit -m "chore: update follower bot state"
+          git push
