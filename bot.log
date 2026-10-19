@@ -45865,3 +45865,8 @@ Following users from your follower list is done! Total followers fetched: 2995, 
 2026-10-18 15:27:08,292 - INFO - Successfully followed user: user1
 2026-10-18 15:27:08,293 - WARNING - Failed to follow nonexistent_user. Status Code: 404
 2026-10-18 15:27:08,294 - WARNING - Failed to follow user1. Status Code: 403
+2026-10-19 06:37:23,534 - ERROR - Failed to fetch followers from page 1: 404 Client Error: Not Found for url
+2026-10-19 06:37:23,535 - INFO - Successfully followed user: user1
+2026-10-19 06:37:23,536 - WARNING - Failed to follow nonexistent_user. Status Code: 404
+2026-10-19 06:37:23,536 - WARNING - Failed to follow user1. Status Code: 403
+2026-10-19 06:37:23,538 - ERROR - Failed to fetch following from page 1: 403 Forbidden

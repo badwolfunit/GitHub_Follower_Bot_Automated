@@ -1,9 +1,8 @@
 # tests/test_bot.py
 
-import pytest
 from unittest.mock import patch, mock_open, MagicMock
 import requests
-from bot import fetch_followers, follow_user, get_new_followers, process_batch, process_followers_in_batches
+from bot import fetch_followers, fetch_following, follow_user, get_new_followers, process_batch, process_followers_in_batches
 from utils import read_file, write_file, append_to_file, increment_counter
 
 # Constants for testing
@@ -61,6 +60,29 @@ def test_follow_user_forbidden():
         success = follow_user(username)
         assert success is False
         mock_put.assert_called_once()
+
+
+def test_fetch_following_success():
+    mock_response = [{'login': 'user1'}]
+
+    with patch('requests.get') as mock_get:
+        mock_get.return_value = MagicMock(status_code=200, json=lambda: mock_response)
+        following = fetch_following(page=1)
+        assert following == mock_response
+        mock_get.assert_called_once_with(
+            'https://api.github.com/user/following',
+            headers={'Authorization': 'token None', 'Accept': 'application/vnd.github.v3+json'},
+            params={'page': 1, 'per_page': 100}
+        )
+
+
+def test_fetch_following_http_error():
+    with patch('requests.get') as mock_get:
+        mock_get.return_value.raise_for_status.side_effect = requests.HTTPError("403 Forbidden")
+        following = fetch_following(page=1)
+        assert following == []
+        mock_get.assert_called_once()
+
 
 def test_read_file_exists():
     mock = mock_open(read_data='user1')
@@ -143,7 +165,7 @@ def test_process_batch():
         assert mock_write.call_count == 2
 
         # Assert that increment_counter was called correctly
-        mock_increment.assert_any_call('counter.txt')
+        mock_increment.assert_any_call('follower_counter.txt')
         assert mock_increment.call_count == 2
 
 
