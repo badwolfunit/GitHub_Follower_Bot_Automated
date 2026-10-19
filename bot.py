@@ -16,6 +16,7 @@ PERSONAL_GITHUB_TOKEN = os.getenv("PERSONAL_GITHUB_TOKEN")
 
 PER_PAGE = 100
 FOLLOWERS_URL_TEMPLATE = "https://api.github.com/users/{}/followers"
+FOLLOWING_URL = "https://api.github.com/user/following"
 FOLLOW_USER_URL_TEMPLATE = "https://api.github.com/user/following/{}"
 RATE_LIMIT_URL = "https://api.github.com/rate_limit"
 
@@ -80,6 +81,16 @@ def fetch_followers(url, page=1):
         return []
 
 
+def fetch_following(page=1):
+    try:
+        response = requests.get(FOLLOWING_URL, headers=_headers(), params={"page": page, "per_page": PER_PAGE})
+        response.raise_for_status()
+        return response.json()
+    except RequestException as exc:
+        logger.error("Failed to fetch following from page %s: %s", page, exc)
+        return []
+
+
 def follow_user(username):
     url = FOLLOW_USER_URL_TEMPLATE.format(username)
     try:
@@ -105,7 +116,7 @@ def get_new_followers(last_checked_follower, all_followers):
 
 
 def process_batch(usernames, followers_file=FOLLOWED_USERS_FILE, last_checked_file=LAST_CHECKED_FOLLOWER_FILE,
-                  counter_file="counter.txt", follow_delay=FOLLOW_DELAY_SECONDS):
+                  counter_file=FOLLOWER_COUNTER_FILE, follow_delay=FOLLOW_DELAY_SECONDS):
     for username in usernames:
         if follow_user(username):
             append_to_file(followers_file, username)
@@ -140,6 +151,22 @@ def _collect_all_follower_logins():
     return all_followers
 
 
+def _collect_all_following_logins():
+    page = 1
+    all_following = []
+
+    while True:
+        following = fetch_following(page=page)
+        if not following:
+            break
+        all_following.extend([u.get("login") for u in following if u.get("login")])
+        if len(following) < PER_PAGE:
+            break
+        page += 1
+
+    return all_following
+
+
 def main():
     if not GITHUB_USER or not PERSONAL_GITHUB_TOKEN:
         raise EnvironmentError("Please set both 'GITHUB_USER' and 'PERSONAL_GITHUB_TOKEN' in your environment variables.")
@@ -153,8 +180,8 @@ def main():
         time.sleep(sleep_duration)
 
     all_followers = _collect_all_follower_logins()
-    followed_users = read_followed_users(FOLLOWED_USERS_FILE)
-    remaining_followers = [user for user in all_followers if user not in followed_users]
+    currently_following = set(_collect_all_following_logins())
+    remaining_followers = [user for user in all_followers if user not in currently_following]
 
     if not remaining_followers:
         logger.info("No new followers to process.")
@@ -166,7 +193,7 @@ def main():
     logger.info(
         "Follower sync complete. Total followers fetched: %s, already followed: %s, pending processed: %s, counter: %s",
         len(all_followers),
-        len(followed_users),
+        len(currently_following),
         len(remaining_followers),
         total_followed,
     )
