@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import patch, mock_open, MagicMock
 import requests
-from bot import fetch_followers, follow_user, get_new_followers, process_batch, process_followers_in_batches
+from bot import fetch_followers, fetch_following, follow_user, get_new_followers, process_batch, process_followers_in_batches
 from utils import read_file, write_file, append_to_file, increment_counter
 
 # Constants for testing
@@ -34,6 +34,28 @@ def test_fetch_followers_http_error():
         followers = fetch_followers(TEST_URL, page=1)
         assert followers == []
         mock_get.assert_called_once()
+
+
+def test_fetch_following_success():
+    mock_response = [{'login': 'user1'}]
+    with patch('requests.get') as mock_get:
+        mock_get.return_value = MagicMock(status_code=200, json=lambda: mock_response)
+        following = fetch_following(page=2)
+        assert following == mock_response
+        mock_get.assert_called_once_with(
+            'https://api.github.com/user/following',
+            headers={'Authorization': 'token None', 'Accept': 'application/vnd.github.v3+json'},
+            params={'page': 2, 'per_page': 100}
+        )
+
+
+def test_fetch_following_error():
+    with patch('requests.get') as mock_get:
+        mock_get.return_value.raise_for_status.side_effect = requests.HTTPError("500 Server Error")
+        following = fetch_following(page=1)
+        assert following == []
+        mock_get.assert_called_once()
+
 
 def test_follow_user_success():
     username = 'user1'
@@ -143,7 +165,7 @@ def test_process_batch():
         assert mock_write.call_count == 2
 
         # Assert that increment_counter was called correctly
-        mock_increment.assert_any_call('counter.txt')
+        mock_increment.assert_any_call('follower_counter.txt')
         assert mock_increment.call_count == 2
 
 
